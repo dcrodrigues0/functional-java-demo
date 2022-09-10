@@ -113,7 +113,7 @@ public class DemoController {
 
         return orderRepository.findAll()
                 .stream()
-                .sorted(Comparator.comparing(Order::getOrderDate))
+                .sorted(Comparator.comparing(Order::getOrderDate).reversed())
                 .limit(3)
                 .map(order -> mapper.map(order, OrderDto.class))
                 .collect(Collectors.toList());
