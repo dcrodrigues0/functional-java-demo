@@ -3,8 +3,6 @@ package com.functional.demo.controller;
 
 import com.functional.demo.dto.OrderDto;
 import com.functional.demo.dto.ProductDto;
-import com.functional.demo.entity.Order;
-import com.functional.demo.entity.Product;
 import com.functional.demo.repository.OrderRepository;
 import com.functional.demo.repository.ProductRepository;
 import org.modelmapper.ModelMapper;
@@ -13,8 +11,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static java.time.temporal.ChronoUnit.DAYS;
 
 @RestController
 @RequestMapping(path = "/demo")
@@ -71,15 +72,22 @@ public class DemoController {
 
     //Obtain a list of products ordered by customer of tier 2 between 01-Feb-2021 and 01-Apr-2021
     @GetMapping("/ex4")
-    public List<ProductDto> ex4(){
+    public List<OrderDto> ex4(){
         ModelMapper mapper = new ModelMapper();
 
-        return (productRepository.findAll()
+
+
+        return (orderRepository.findAll()
                 .stream()
-                .sorted()
-                .map(product -> mapper.map(product,ProductDto.class))
+                .filter(order -> order.getCustomer().getTier().equals(2))
+                .filter(order -> order.getDeliveryDate().compareTo(LocalDate.parse("2021-02-01")) >= 0)
+                .filter(order -> order.getDeliveryDate().compareTo(LocalDate.parse("2021-04-01")) <= 0)
+                .flatMap(order -> order.getProducts().stream())
+                .map(order -> mapper.map(order,OrderDto.class))
                 .collect(Collectors.toList()));
 
     }
+
+    
 
 }
