@@ -3,6 +3,8 @@ package com.functional.demo.controller;
 
 import com.functional.demo.dto.OrderDto;
 import com.functional.demo.dto.ProductDto;
+import com.functional.demo.entity.Order;
+import com.functional.demo.entity.Product;
 import com.functional.demo.repository.OrderRepository;
 import com.functional.demo.repository.ProductRepository;
 import org.modelmapper.ModelMapper;
@@ -12,7 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -80,14 +84,41 @@ public class DemoController {
         return (orderRepository.findAll()
                 .stream()
                 .filter(order -> order.getCustomer().getTier().equals(2))
-                .filter(order -> order.getDeliveryDate().compareTo(LocalDate.parse("2021-02-01")) >= 0)
-                .filter(order -> order.getDeliveryDate().compareTo(LocalDate.parse("2021-04-01")) <= 0)
+                .filter(order -> order.getOrderDate().compareTo(LocalDate.parse("2021-02-01")) >= 0)
+                .filter(order -> order.getOrderDate().compareTo(LocalDate.parse("2021-04-01")) <= 0)
                 .flatMap(order -> order.getProducts().stream())
                 .map(order -> mapper.map(order,OrderDto.class))
                 .collect(Collectors.toList()));
 
     }
 
-    
+    //Get the cheapest products of “Books” category
+    @GetMapping("/ex5")
+    public Optional<ProductDto> ex5(){
+        ModelMapper mapper = new ModelMapper();
+
+        return productRepository.findAll()
+                .stream()
+                .filter(product -> product.getCategory().equals("Books"))
+                .sorted(Comparator.comparing(Product::getPrice))
+                .map(product -> mapper.map(product, ProductDto.class))
+                .findFirst();
+
+    }
+
+    //Get the 3 most recent placed order
+    @GetMapping("/ex6")
+    public List<OrderDto> ex6(){
+        ModelMapper mapper = new ModelMapper();
+
+        return orderRepository.findAll()
+                .stream()
+                .sorted(Comparator.comparing(Order::getOrderDate))
+                .limit(3)
+                .map(order -> mapper.map(order, OrderDto.class))
+                .collect(Collectors.toList());
+    }
+
+
 
 }
